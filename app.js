@@ -44,10 +44,17 @@ function parseAndSave(text) {
 function provideYearData(year) {
     // TODO: Fill in this function. (5 points)
     let givenyear = [];
+    let ranklist = records.filter(obj=>obj.year==year && obj.gender=='M').map(obj => obj.rank);
+    ranklist.sort(function(a,b){
+        return a-b;
+    })
+    
+    for (i= 0; i < ranklist.length; i++) {
+        let rank = ranklist[i];
 
-    for (rank = 1; rank <= records.filter(obj => obj.year == year && obj.gender == 'M').length; rank++) {
         let male = records.filter(obj => obj.rank == rank && obj.gender == 'M' && obj.year == year);
         let female = records.filter(obj => obj.rank == rank && obj.gender == 'F' && obj.year == year);
+
         givenyear.push({ rank: rank, male: male[0]?.name, maleRankChange: male[0]?.rankChange, female: female[0]?.name, femaleRankChange: female[0]?.rankChange });
     }
     // This is just a reference for the return value's format. Delete this and fill your own 
