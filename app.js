@@ -16,7 +16,14 @@ let records = [];
 // in which they appear in a csv text. You can assume that at the first line is always a csv header.
 function parseAndSave(text) {
     // TODO: Fill this function. (3 points)
+    let textlines = text.split('\n');
+    let headers = textlines[0].split(',');
 
+    for(let i =1 ; i<textlines.length; i++){
+        let data = textlines[i].split(',');
+        let dict = { year: data[0],rank: data[1], name: data[2], gender: data[3], rankChange: data[4] };
+        records.push(dict);
+    }
 }
 
 
@@ -30,18 +37,16 @@ function parseAndSave(text) {
 //           {rank: 1000, male: "Keshawn", maleRankChange: 113, female: "Karley", femaleRankChange: 17}]
 function provideYearData(year) {
     // TODO: Fill in this function. (5 points)
-
+    let givenyear = [];
+    
+    for( rank=1; rank<=1000; rank++){
+        let male= records.filter(obj => obj.rank==rank && obj.gender=='M' && obj.year==year).map(item => [item.name, item.rankChange]);
+        let female= records.filter(obj => obj.rank==rank && obj.gender=='F' && obj.year==year).map(item => [item.name, item.rankChange]);
+        givenyear.push({ rank: rank, male: male[0][0], maleRankChange: male[0][1], female: female[0][0], femaleRankChange: female[0][1] });
+    }
     // This is just a reference for the return value's format. Delete this and fill your own 
     // proper code to return the correct data.
-    return [
-        {
-            rank: 1,
-            male: "John",
-            maleRankChange: 0,
-            female: "Christina",
-            femaleRankChange: -2
-        }
-    ];
+    return givenyear;
 }
 
 // provideChartData(name, gender) is a function called when a user wants
@@ -61,10 +66,14 @@ function provideYearData(year) {
 //           {year: 2018, rank: 380}]
 function provideChartData(name, gender) {
     // TODO: Fill in this function. (2 points)
-
+    let ranklist=[];
+    for(year = 2001 ; year<=2018;year++){
+        let data = records.filter(obj=> obj.name == name && obj.gender == gender && obj.year == year)
+        ranklist.push({year: year, rank: data[0]?.rank})
+    }
     // This is just a reference for the return value's format. Delete this and fill your own 
     // proper code to return the correct data.
-    return [{year: 2001, rank: 3}, {year: 2002, rank: undefined}];
+    return ranklist;
 }
 
 
@@ -72,9 +81,51 @@ function provideChartData(name, gender) {
 // `form` is the target HTML form element (L82~ in index.html).
 // TODO: validate the form. (5 points)
 function handleSignUpFormSubmit(form) {
-    let alertMessage = 'TODO: Fill in this alert message properly';
+    let alertMessage = "";
     // TODO: Fill in the rest of function to get the HTML form element as above.
+    let firstname= form['first-name'].value;
+    let lastname = form['last-name'].value;
+    let email = form['email'].value;
+    let birth = form['date-of-birth'].value;
+    
+    let valid_firstname = false;
+    let valid_lastname = false;
+    let valid_email = false;
+    let valid_birth = false;
 
+    if(/[A-Z][a-z]+/.exec(firstname)==firstname) valid_firstname=true;
+    else {
+        valid_firstname=false; 
+        alertMessage += "First name\n"
+    }
+
+    if(/[A-Z][a-z]+/.exec(lastname)==lastname) valid_lastname=true;
+    else{
+        valid_lastname=false;
+        alertMessage += "Last name\n"
+    } 
+
+    if(/[^@\s]+@[^@\s.]+.[A-Za-z]{2,3}/.exec(email)==email) valid_email=true;
+    else {
+        valid_email=false;
+        alertMessage +="Email\n"
+    }
+
+    if(/\d{4}-\d{2}-\d{2}/.exec(birth)==birth){
+        let date = birth.split('-')
+        let year = date[0]
+        let month = date[1]
+        let day = date[2]
+        if(1900<=year&&2020>=year && 1<=month&&12>=month && 1<=day && 31>=day ) valid_birth=true;
+        else{
+             valid_birth=false;
+             alertMessage +="Date-of-birth\n"
+        }
+    }else {
+        valid_birth=false;
+        alertMessage +="Date-of-birth\n"
+    }
+    
     // Hint: you can use the `RegExp` class for matching a string.
 
     // The return data format is as follows. For the given `form` argument, you should
@@ -88,12 +139,12 @@ function handleSignUpFormSubmit(form) {
     //                 Plus, please do not call `alert` function here.
     //                 For debugging purpose, you can use `console.log`.
     return {
-        alertMessage: alertMessage, 
+        alertMessage: alertMessage? "You must correct:\n\n"+alertMessage: "Successfully Submitted!" , 
         validationResults: [
-            {name: "first-name", valid: true, message: null},
-            {name: "last-name", valid: false, message: "Invalid last name"},
-            {name: "email", valid: true, message: null},
-            {name: "date-of-birth", valid: false, message: "Invalid date of birth"}
+            {name: "first-name", valid: valid_firstname, message: valid_firstname?null:"Invalid first name"},
+            {name: "last-name", valid: valid_lastname, message: valid_lastname?null:"Invalid last name"},
+            {name: "email", valid: valid_email, message: valid_email?null:"Invalid email"},
+            {name: "date-of-birth", valid: valid_birth, message: valid_birth?null:"Invalid date of birth"}
         ]
     };
 }
