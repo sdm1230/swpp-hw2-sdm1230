@@ -19,9 +19,15 @@ function parseAndSave(text) {
     let textlines = text.split('\n');
     let headers = textlines[0].split(',');
 
-    for(let i =1 ; i<textlines.length; i++){
+    for (let i = 1; i < textlines.length; i++) {
         let data = textlines[i].split(',');
-        let dict = { year: data[0],rank: data[1], name: data[2], gender: data[3], rankChange: data[4] };
+
+        let list = headers.map((header, index) => {
+            if (header == 'rank_delta') return {key: "rankChange",value: data[index] === "" ? null : data[index]};
+            return {key: header,value: data[index]};
+        });
+        let dict = Object.assign({}, ...list.map((obj)=> ({[obj.key]: obj.value})));
+
         records.push(dict);
     }
 }
@@ -38,11 +44,11 @@ function parseAndSave(text) {
 function provideYearData(year) {
     // TODO: Fill in this function. (5 points)
     let givenyear = [];
-    
-    for( rank=1; rank<=1000; rank++){
-        let male= records.filter(obj => obj.rank==rank && obj.gender=='M' && obj.year==year).map(item => [item.name, item.rankChange]);
-        let female= records.filter(obj => obj.rank==rank && obj.gender=='F' && obj.year==year).map(item => [item.name, item.rankChange]);
-        givenyear.push({ rank: rank, male: male[0][0], maleRankChange: male[0][1], female: female[0][0], femaleRankChange: female[0][1] });
+
+    for (rank = 1; rank <= records.filter(obj => obj.year == year && obj.gender == 'M').length; rank++) {
+        let male = records.filter(obj => obj.rank == rank && obj.gender == 'M' && obj.year == year);
+        let female = records.filter(obj => obj.rank == rank && obj.gender == 'F' && obj.year == year);
+        givenyear.push({ rank: rank, male: male[0]?.name, maleRankChange: male[0]?.rankChange, female: female[0]?.name, femaleRankChange: female[0]?.rankChange });
     }
     // This is just a reference for the return value's format. Delete this and fill your own 
     // proper code to return the correct data.
@@ -66,10 +72,10 @@ function provideYearData(year) {
 //           {year: 2018, rank: 380}]
 function provideChartData(name, gender) {
     // TODO: Fill in this function. (2 points)
-    let ranklist=[];
-    for(year = 2001 ; year<=2018;year++){
-        let data = records.filter(obj=> obj.name == name && obj.gender == gender && obj.year == year)
-        ranklist.push({year: year, rank: data[0]?.rank})
+    let ranklist = [];
+    for (year = 2001; year <= 2018; year++) {
+        let data = records.filter(obj => obj.name == name && obj.gender == gender && obj.year == year)
+        ranklist.push({ year: year, rank: data[0]?.rank })
     }
     // This is just a reference for the return value's format. Delete this and fill your own 
     // proper code to return the correct data.
@@ -83,49 +89,49 @@ function provideChartData(name, gender) {
 function handleSignUpFormSubmit(form) {
     let alertMessage = "";
     // TODO: Fill in the rest of function to get the HTML form element as above.
-    let firstname= form['first-name'].value;
+    let firstname = form['first-name'].value;
     let lastname = form['last-name'].value;
     let email = form['email'].value;
     let birth = form['date-of-birth'].value;
-    
+
     let valid_firstname = false;
     let valid_lastname = false;
     let valid_email = false;
     let valid_birth = false;
 
-    if(/[A-Z][a-z]+/.exec(firstname)==firstname) valid_firstname=true;
+    if (/[A-Z][a-z]+/.exec(firstname) == firstname) valid_firstname = true;
     else {
-        valid_firstname=false; 
+        valid_firstname = false;
         alertMessage += "First name\n"
     }
 
-    if(/[A-Z][a-z]+/.exec(lastname)==lastname) valid_lastname=true;
-    else{
-        valid_lastname=false;
-        alertMessage += "Last name\n"
-    } 
-
-    if(/[^@\s]+@[^@\s.]+.[A-Za-z]{2,3}/.exec(email)==email) valid_email=true;
+    if (/[A-Z][a-z]+/.exec(lastname) == lastname) valid_lastname = true;
     else {
-        valid_email=false;
-        alertMessage +="Email\n"
+        valid_lastname = false;
+        alertMessage += "Last name\n"
     }
 
-    if(/\d{4}-\d{2}-\d{2}/.exec(birth)==birth){
+    if (/[^@\s]+@[^@\s.]+.[A-Za-z]{2,3}/.exec(email) == email) valid_email = true;
+    else {
+        valid_email = false;
+        alertMessage += "Email\n"
+    }
+
+    if (/\d{4}-\d{2}-\d{2}/.exec(birth) == birth) {
         let date = birth.split('-')
         let year = date[0]
         let month = date[1]
         let day = date[2]
-        if(1900<=year&&2020>=year && 1<=month&&12>=month && 1<=day && 31>=day ) valid_birth=true;
-        else{
-             valid_birth=false;
-             alertMessage +="Date-of-birth\n"
+        if (1900 <= year && 2020 >= year && 1 <= month && 12 >= month && 1 <= day && 31 >= day) valid_birth = true;
+        else {
+            valid_birth = false;
+            alertMessage += "Date-of-birth\n"
         }
-    }else {
-        valid_birth=false;
-        alertMessage +="Date-of-birth\n"
+    } else {
+        valid_birth = false;
+        alertMessage += "Date-of-birth\n"
     }
-    
+
     // Hint: you can use the `RegExp` class for matching a string.
 
     // The return data format is as follows. For the given `form` argument, you should
@@ -139,12 +145,12 @@ function handleSignUpFormSubmit(form) {
     //                 Plus, please do not call `alert` function here.
     //                 For debugging purpose, you can use `console.log`.
     return {
-        alertMessage: alertMessage? "You must correct:\n\n"+alertMessage: "Successfully Submitted!" , 
+        alertMessage: alertMessage ? "You must correct:\n\n" + alertMessage : "Successfully Submitted!",
         validationResults: [
-            {name: "first-name", valid: valid_firstname, message: valid_firstname?null:"Invalid first name"},
-            {name: "last-name", valid: valid_lastname, message: valid_lastname?null:"Invalid last name"},
-            {name: "email", valid: valid_email, message: valid_email?null:"Invalid email"},
-            {name: "date-of-birth", valid: valid_birth, message: valid_birth?null:"Invalid date of birth"}
+            { name: "first-name", valid: valid_firstname, message: valid_firstname ? null : "Invalid first name" },
+            { name: "last-name", valid: valid_lastname, message: valid_lastname ? null : "Invalid last name" },
+            { name: "email", valid: valid_email, message: valid_email ? null : "Invalid email" },
+            { name: "date-of-birth", valid: valid_birth, message: valid_birth ? null : "Invalid date of birth" }
         ]
     };
 }
